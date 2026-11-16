@@ -4,15 +4,15 @@
 [![rank](https://make.fun/badge/token-radar-01/Oxgantarawang/token-radar/rank.svg)](https://make.fun/bounty/token-radar-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=token-radar-01)
 [![reward](https://make.fun/badge/token-radar-01/Oxgantarawang/token-radar/reward.svg)](https://make.fun/bounty/token-radar-01?utm_source=github&utm_medium=readme&utm_campaign=token-radar-01)
 
-A token launch radar: it reads a sealed DefiLlama snapshot of 758 protocols, ranks the ones that record no token by an implied value, and shows a reader how to farm each one. The watchlist (40 protocols with $50M+ TVL and no token on record) is the floor, never the ceiling — the board also carries the 200 largest pre-token protocols below that floor, so the radar finds launches early. Protocols whose token already trades are set aside in a Live view with their market caps shown, never mixed into the ranking.
+A token launch radar: it reads a sealed DefiLlama snapshot of 758 protocols, ranks the ones that record no token by an implied value, and shows a reader how to farm each one. The watchlist (40 protocols with $50M+ TVL and no token on record) is the floor, never the ceiling — the board also carries the largest pre-token protocols below that floor, so the radar finds launches early. Protocols whose token already trades are set aside in a Live view with their market caps shown, never mixed into the ranking.
 
 ## The model, in plain words
 
 Every pre-token protocol gets one implied value from the snapshot's own figures:
 
-1. **Category multiple** — the median market-cap-to-TVL ratio of the token-bearing protocols in the same category (at least 3 comparables, else the global median), clamped to 0.05–1.50. A lending protocol is priced like lending protocols, a DEX like DEXes: the market's own multiples, not a number picked by hand.
+1. **Category multiple** — the median market-cap-to-TVL ratio of the token-bearing protocols in the same category (at least 3 comparables, else the global median), clamped to 0.05–1.50. A lending protocol is priced like lending protocols, a DEX like DEXes: the market's own multiples, not a number picked by hand. The multiples are rounded to four decimals once, when the board is built, so the dashboard's recomputation agrees with the board to the dollar.
 2. **Growth** — seven-day TVL growth, clamped to −50%…+150% and weighted at 0.4, so one wild week cannot dominate the board.
-3. **Maturity** — the longer a protocol has run with no token, the higher it scores: 0.70 plus up to 0.30 for up to three years since it was first listed.
+3. **Maturity** — the longer a protocol has run with no token, the higher it scores: 0.70 plus up to 0.30 for up to three years since it was first listed. A protocol with no listing date is scored as if it were a year old.
 4. **Breadth** — +4% per extra chain it runs on, up to +20%.
 
 `implied = round(TVL × category multiple × growth × maturity × breadth)`

@@ -11,6 +11,8 @@
   var app = document.getElementById('board');
   var state = { q: '', category: 'all', chain: 'all', minTvl: 0, tab: 'pre-token', sort: 'implied', dir: -1, expanded: null };
 
+  // --- Formatting ---------------------------------------------------------------
+
   var usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
   function fmtUsd(n) {
     if (n === null || n === undefined || !isFinite(n)) return 'n/a';
@@ -28,8 +30,13 @@
     if (days >= 365) return (days / 365).toFixed(1) + 'y';
     return Math.max(0, Math.round(days)) + 'd';
   }
-  // The model in one function: the page recomputes a row from the snapshot figures and checks the
-  // number board.json carries, so the page's code and the board's data are visibly the same arithmetic.
+
+  // --- The model, recomputed on the page -----------------------------------------
+  //
+  // The page recomputes a row from the snapshot figures and checks the number board.json
+  // carries, so the page's code and the board's data are visibly the same arithmetic. The
+  // comparable multiple arrives already rounded to 4 decimals (the model rounds it once, when
+  // it computes the board), so this function uses it exactly as stored.
   function impliedOf(row, model) {
     var multiple = row.comparable_multiple;
     var growth = Math.min(model.growth_cap, Math.max(model.growth_floor, row.change_7d === null || row.change_7d === undefined ? 0 : row.change_7d));
@@ -41,6 +48,10 @@
     return Math.max(1, Math.round(row.tvl_usd * multiple * growthMult * maturity * breadth));
   }
 
+  // --- A tiny DOM helper ---------------------------------------------------------
+  //
+  // el('div', { class: 'x', text: 'hi' }, child, ...) builds one node: `class`, `text` and
+  // `html` are handled specially, `on*` keys become listeners, anything else is an attribute.
   function el(tag, attrs) {
     var node = document.createElement(tag);
     if (attrs) {
@@ -62,9 +73,13 @@
     return node;
   }
 
-  // The farm plan is the same derivation main.ts writes to board.json: category, chains, TVL and
-  // age decide the action, the capital, the hold and every cost and time. No name is special-cased,
-  // and no step invents a URL, a points program or a confirmed airdrop.
+  // --- The farm plan, derived on the page -----------------------------------------
+  //
+  // The farm plan is the same derivation main.ts writes to board.json: category, chains, TVL
+  // and age decide the action, the capital, the hold and every cost and time. No name is
+  // special-cased, and no step invents a URL, a points program or a confirmed airdrop. The
+  // page re-derives the plan rather than reading it from data.js, so the detail view and the
+  // board are two readings of one derivation.
   function chainOf(p) { return p.chains && p.chains.length > 0 ? p.chains[0] : 'its main chain'; }
   function capitalFor(p) {
     if (p.tvl_usd >= 5e9) return 250;
@@ -88,12 +103,19 @@
     if (c.indexOf('perpetual') >= 0 || c.indexOf('derivative') >= 0) return 'Deposit $' + capital + ' of USDC as margin on ' + name + ' on ' + chain + ' and open one small hedged position.';
     if (c.indexOf('prediction') >= 0) return 'Fund your account with $' + capital + ' on ' + name + ' and place one small position in an active market.';
     if (c.indexOf('yield') >= 0 || c.indexOf('vault') >= 0 || c.indexOf('curator') >= 0 || c.indexOf('allocator') >= 0) return 'Deposit $' + capital + ' into a ' + name + ' vault on ' + chain + ' and hold the vault shares while they earn yield.';
+    if (c.indexOf('liquidity manager') >= 0) return 'Deposit $' + capital + ' into a ' + name + ' managed liquidity position on ' + chain + ' and let it rebalance while you hold it.';
     if (c.indexOf('stable') >= 0) return 'Mint or deposit $' + capital + ' of the stable asset through ' + name + ' on ' + chain + ' and hold it in your wallet.';
     if (c.indexOf('rwa') >= 0) return "Mint $" + capital + " of the protocol's yield-bearing asset on " + chain + ' through ' + name + ' and hold it.';
     if (c.indexOf('basis') >= 0) return 'Deposit $' + capital + " into " + name + "'s basis strategy on " + chain + ' and hold the position while it earns the funding spread.';
     if (c.indexOf('index') >= 0) return 'Mint $' + capital + ' of the ' + name + ' index token on ' + chain + ' and hold it in your wallet.';
-    if (c.indexOf('privacy') >= 0) return 'Deposit $' + capital + ' into ' + name + "'s shielded pool on " + chain + ' and keep the position open.';
+    if (c.indexOf('farm') >= 0) return 'Deposit $' + capital + ' into a ' + name + ' farm on ' + chain + ' and keep the position staked while it earns.';
+    if (c.indexOf('option') >= 0) return 'Deposit $' + capital + ' into a ' + name + ' options vault on ' + chain + ' and hold the vault shares through one expiry cycle.';
+    if (c.indexOf('payment') >= 0) return 'Pay $' + capital + ' through ' + name + ' on ' + chain + ' for something you already buy, and keep using it for the same payment each week.';
+    if (c.indexOf('launchpad') >= 0) return 'Join one ' + name + ' launch on ' + chain + ' with $' + capital + ' and hold the allocation through the launch window.';
+    if (c.indexOf('privacy') >= 0) return 'Deposit $' + capital + " into " + name + "'s shielded pool on " + chain + ' and keep the position open.';
     if (c.indexOf('insurance') >= 0) return 'Buy $' + capital + ' of cover from ' + name + ' on ' + chain + ' and keep the policy active.';
+    if (c.indexOf('ai agent') >= 0 || c.indexOf('decentralized ai') >= 0) return 'Use $' + capital + ' through a ' + name + ' agent on ' + chain + ' and keep the agent working for you each week.';
+    if (c === 'chain') return 'Use $' + capital + ' inside an app built on ' + name + ' and keep the position open on its chain.';
     return 'Deposit $' + capital + ' of USDC into ' + name + ' on ' + chain + ' and keep the position open.';
   }
   function stepText(step) {
@@ -108,7 +130,7 @@
     var hold = holdDaysFor(p.age_days);
     var extra = p.chains && p.chains.length > 1 ? ' Repeat the core action on a second chain it runs on, ' + p.chains[1] + ', with a smaller amount, so the activity is visible on more than one chain.' : '';
     return [
-      { text: 'Set up a fresh wallet that holds only the funds you plan to farm, and keep its seed phrase offline where nobody else can read it.', cost: 'no capital, under $3 of gas for the first transaction', time: '5 minutes' },
+      { text: 'Use a fresh wallet that holds only the funds you plan to farm, and keep its seed phrase offline where nobody else can read it.', cost: 'no capital, under $3 of gas for the first transaction', time: '5 minutes' },
       { text: actionFor(p, capital, chain), cost: '$' + capital + ' of capital and about $' + (capital >= 150 ? 8 : 4) + ' of gas', time: '15 minutes to set up' },
       { text: 'Do one real action each week on the protocol, such as a deposit, a withdrawal, a swap, a borrow or a vote, and keep the receipts.' + extra, cost: 'about $2 of gas a week', time: '10 minutes a week' },
       { text: 'Hold the position for at least ' + hold + ' days, so the activity is counted in more than one snapshot if the protocol ever looks back at its users.', cost: 'the $' + capital + ' stays in the position', time: hold + ' days' },
@@ -117,6 +139,10 @@
     ].map(stepText);
   }
 
+  // --- URL state -------------------------------------------------------------------
+  //
+  // The filters live in the URL so a view can be shared: reading them on load restores the
+  // same board, and every change rewrites them with replaceState (no history spam).
   function readParams() {
     var params = new URLSearchParams(window.location.search);
     if (params.get('q')) state.q = params.get('q');
@@ -140,6 +166,10 @@
     window.history.replaceState(null, '', url);
   }
 
+  // --- Filtering and sorting ---------------------------------------------------------
+  //
+  // Sorting never mutates the data: sortedRows copies the filtered list, and ties break on
+  // slug so the order is stable. Growth sorts nulls last on a descending sort (as -Infinity).
   function rows() {
     var q = state.q.trim().toLowerCase();
     return DATA.rows.filter(function (r) {
@@ -166,6 +196,8 @@
       return a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0;
     });
   }
+
+  // --- Page sections -------------------------------------------------------------------
 
   function header() {
     return el('header', { class: 'top' },
@@ -233,6 +265,8 @@
     );
   }
 
+  // A column header that sorts: clicking the active column flips the direction, clicking
+  // another column sorts it descending first (strongest first, the board's own order).
   function sortHeader(key, label) {
     return el('th', { scope: 'col' },
       el('button', { type: 'button', onclick: function () { if (state.sort === key) state.dir = -state.dir; else { state.sort = key; state.dir = -1; } render(); } },
@@ -242,6 +276,8 @@
     );
   }
 
+  // The expanded row: the model's inputs, the page's recomputation next to the board's number,
+  // and the farm plan, split into the action and its cost and time for reading at a glance.
   function detailCell(row) {
     var steps = farmSteps(row);
     var recomputed = impliedOf(row, DATA.model);
@@ -277,6 +313,7 @@
         el('button', { class: 'button primary', type: 'button', text: 'Clear filters', onclick: function () { state.q = ''; state.category = 'all'; state.chain = 'all'; state.minTvl = 0; state.expanded = null; writeParams(); render(); } })
       ));
     }
+    // The bar is relative to the strongest row on screen, so the first row always fills it.
     var max = list[0].implied_value_usd || 1;
     var tbody = el('tbody');
     list.forEach(function (r) {
@@ -327,6 +364,8 @@
     );
   }
 
+  // Live-token protocols are set aside on their own tab: their market cap is a fact, not a
+  // model, and they never take a rank on the pre-token board.
   function liveTable() {
     var tbody = el('tbody');
     DATA.live.forEach(function (r) {
@@ -350,6 +389,8 @@
     );
   }
 
+  // The model, stated on the page in the same words as the code: the formula, where the
+  // multiple comes from, what age means, and what the early radar and the Live tab are.
   function modelPanel() {
     var m = DATA.model;
     return el('section', { class: 'panel model' },
@@ -362,6 +403,8 @@
     );
   }
 
+  // One render rebuilds the whole shell from state; the expanded row and the URL keep the
+  // view a reader was looking at.
   function render() {
     app.textContent = '';
     var shell = el('div', { class: 'shell' });

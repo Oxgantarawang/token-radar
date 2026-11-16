@@ -1,6 +1,9 @@
-/* Token Radar's night theme. Five palette values, two radii and two families carry the whole
-   page; everything else is spacing, a hairline and a type step. No network, no images. */
+/* Token Radar's night theme.
+   Five palette values, two radii and two families carry the whole page; everything else is
+   spacing, a hairline and a type step. No network, no images, no framework. */
+
 :root {
+  /* Palette: one dark green scale, one amber accent, one green and one red for direction. */
   --bg: #0d1411;
   --surface: #131e19;
   --panel: #182620;
@@ -12,10 +15,12 @@
   --accent-ink: #1a1405;
   --good: #4cc38a;
   --bad: #e06c5b;
+  /* Shape and type. */
   --radius-control: 8px;
   --radius-panel: 14px;
   --font-body: system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-num: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  /* One spacing scale, used everywhere: 4, 8, 12, 16, 24, 32, 48. */
   --s1: 4px;
   --s2: 8px;
   --s3: 12px;
@@ -24,6 +29,8 @@
   --s6: 32px;
   --s7: 48px;
 }
+
+/* --- Base ------------------------------------------------------------------ */
 
 * { box-sizing: border-box; }
 html { color-scheme: dark; }
@@ -46,6 +53,8 @@ a { color: var(--accent); }
 .skip:focus { left: var(--s4); top: var(--s4); }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+/* --- Shell and header ------------------------------------------------------ */
+
 .shell { max-width: 1320px; margin: 0 auto; padding: var(--s5) var(--s6) var(--s7); }
 .top {
   display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s5);
@@ -58,6 +67,8 @@ a { color: var(--accent); }
 .top-meta span { white-space: nowrap; }
 .top-meta b { color: var(--ink); font-weight: 600; }
 
+/* --- Lede and facts -------------------------------------------------------- */
+
 .lede { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr); gap: var(--s6); padding: var(--s6) 0 var(--s5); }
 .lede p { color: var(--muted); max-width: 64ch; margin-top: var(--s2); }
 .lede p b { color: var(--ink); font-weight: 600; }
@@ -65,6 +76,8 @@ a { color: var(--accent); }
 .fact { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3); }
 .fact b { font-family: var(--font-num); font-size: 15px; font-weight: 600; color: var(--accent); }
 .fact span { color: var(--muted); font-size: 13px; }
+
+/* --- Controls -------------------------------------------------------------- */
 
 .controls { display: flex; flex-wrap: wrap; align-items: end; gap: var(--s3); padding: var(--s4) 0; border-top: 1px solid var(--border); }
 .field { display: grid; gap: var(--s1); }
@@ -80,6 +93,8 @@ a { color: var(--accent); }
 .tabs button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
 .count { margin-left: auto; color: var(--muted); font-size: 13px; align-self: center; }
 
+/* --- Table ----------------------------------------------------------------- */
+
 .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-panel); overflow: hidden; }
 .table-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 14px; }
@@ -87,7 +102,7 @@ th, td { padding: var(--s3); border-bottom: 1px solid var(--border); text-align:
 th { color: var(--muted); font-size: 12px; font-weight: 500; white-space: nowrap; }
 th button { display: inline-flex; align-items: center; gap: var(--s1); border: 0; background: none; padding: 0; color: inherit; font: inherit; }
 th button:hover { color: var(--ink); }
-tbody tr { cursor: pointer; }
+tbody tr { cursor: pointer; transition: background-color 120ms ease; }
 tbody tr:hover { background: var(--panel); }
 tbody tr[data-selected="true"] { background: #22352b; }
 tbody tr.expanded-row { cursor: default; background: var(--panel); }
@@ -106,6 +121,8 @@ tbody tr.expanded-row:hover { background: var(--panel); }
 .status.live::before { background: var(--good); }
 .tag { display: inline-block; padding: 1px 7px; border: 1px solid var(--border); border-radius: 20px; font-size: 11px; color: var(--muted); white-space: nowrap; }
 
+/* --- Detail: farm plan and model ------------------------------------------- */
+
 .inline-steps { padding: var(--s4) var(--s5) var(--s5); display: grid; gap: var(--s3); }
 .inline-steps h3 { color: var(--accent); font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
 .steps { margin: 0; padding-left: var(--s5); display: grid; gap: var(--s3); }
@@ -120,6 +137,8 @@ tbody tr.expanded-row:hover { background: var(--panel); }
 .empty p { color: var(--muted); }
 .button { min-height: 38px; padding: 0 var(--s4); border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface); color: var(--ink); }
 .button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+
+/* --- Detail dialog (kept for the drawer variant of the detail view) -------- */
 
 .detail {
   position: fixed; top: 0; right: 0; bottom: 0; width: min(560px, 94vw); z-index: 10;
@@ -141,6 +160,8 @@ tbody tr.expanded-row:hover { background: var(--panel); }
 .equation span { color: var(--muted); }
 .equation b { font-weight: 600; }
 .note { margin-top: var(--s3); padding: var(--s3) var(--s4); border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--panel); color: var(--muted); font-size: 13px; }
+
+/* --- Narrow screens and reduced motion ------------------------------------- */
 
 @media (max-width: 900px) {
   .shell { padding: var(--s4); }
