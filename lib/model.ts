@@ -218,10 +218,12 @@ export function comparableMultiples(snapshot: Snapshot, model: ModelConstants): 
     }
   }
   const clamp = (v: number): number => Math.min(model.multiple_cap, Math.max(model.multiple_floor, v));
-  const global = all.length > 0 ? clamp(median(all)) : 0.25;
+  // Round the multiples to 4 decimals here, once: the board's implied value and the dashboard's
+  // recomputation then use the exact same number, so the page never disagrees with board.json.
+  const global = all.length > 0 ? round4(clamp(median(all))) : 0.25;
   const byCategory = new Map<string, number>();
   for (const [category, ratios] of byCategoryRaw) {
-    if (ratios.length >= model.min_comparables) byCategory.set(category, clamp(median(ratios)));
+    if (ratios.length >= model.min_comparables) byCategory.set(category, round4(clamp(median(ratios))));
   }
   return { byCategory, global };
 }
